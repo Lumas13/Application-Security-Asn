@@ -1,0 +1,39 @@
+﻿@page
+@model IndexModel
+@inject IHttpContextAccessor contxt;
+@{
+    ViewData["Title"] = "Home page";
+    }
+    
+
+<div class="container mt-5">
+    <div class="text-center">
+        <!-- Welcome message using session data -->
+        <h1 class="display-4">Welcome, @contxt.HttpContext.Session.GetString("FirstName") @contxt.HttpContext.Session.GetString("LastName")!</h1>
+    </div>
+
+    <h1 class="mb-3">User Information</h1>
+
+    <dl class="row">
+        <dt class="col-sm-3">First Name:</dt>
+        <dd class="col-sm-9">@Model.UserInfo.FirstName</dd>
+
+        <dt class="col-sm-3">Last Name:</dt>
+        <dd class="col-sm-9">@Model.UserInfo.LastName</dd>
+
+        <dt class="col-sm-3">Credit Card:</dt>
+        <dd class="col-sm-9">@Model.UserInfo.CreditCard</dd>
+
+        <dt class="col-sm-3">Phone Number:</dt>
+        <dd class="col-sm-9">@Model.UserInfo.PhoneNumber</dd>
+
+        <dt class="col-sm-3">Billing Address:</dt>
+        <dd class="col-sm-9">@Model.UserInfo.BillingAddress</dd>
+
+        <dt class="col-sm-3">Shipping Address:</dt>
+        <dd class="col-sm-9">@Model.UserInfo.ShippingAddress</dd>
+
+        <dt class="col-sm-3">Email:</dt>
+        <dd class="col-sm-9">@Model.UserInfo.Email</dd>
+    </dl>
+</div>
