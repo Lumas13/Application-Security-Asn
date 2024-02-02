@@ -1,12 +1,20 @@
 ﻿@page
 @model WebApplication3.Pages.LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<head>
+    <!-- Google reCAPTCHA V2 API -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
 
 <div class="container mt-5">
     <div class="row justify-content-center align-items-center">
         <div class="col-sm-12 col-md-12 col-lg-4">
             <h1 class="mb-3">Login</h1>
 
-            <form method="post">
+            <form method="post" id="loginForm">
                 <!-- AntiForge Token to protect against CSRF -->
                 @Html.AntiForgeryToken() 
 
@@ -22,16 +30,36 @@
                     <span asp-validation-for="LModel.Password" class="text-danger"></span>
                 </div>
 
-                <div class="mb-3 form-check">
-                    <input type="checkbox" asp-for="LModel.RememberMe" class="form-check-input" />
-                    <label class="form-check-label" asp-for="LModel.RememberMe">Remember Me?</label>
+                <!-- reCAPTCHA V2 -->
+                <div class="mb-3">
+                    <div class="g-recaptcha" data-sitekey="6LeqklkpAAAAANIa7IRx21FRaMIfZYYJ3UIDi5fd"></div>
+                    <span class="text-danger" id="recaptchaError"></span>
                 </div>
 
                 <div class="mb-3">
-                    <button type="submit" class="btn btn-primary" onclick="submitForm()">Login</button>
+                    <button type="submit" class="btn btn-primary">Login</button>
                 </div>
             </form>
+
+            <div class="mb-3">
+                <a asp-page="ForgetPassword">Forget Password?</a>
+            </div>
         </div>
     </div>
 </div>
 
+<script>
+    function submitForm() {
+        // Validate reCAPTCHA before submitting the form
+        var response = grecaptcha.getResponse();
+
+        if (response.length === 0) {
+            document.getElementById("recaptchaError").innerHTML = "Please complete the reCAPTCHA.";
+            return false;
+        } else {
+            document.getElementById("recaptchaError").innerHTML = "";
+            document.getElementById("loginForm").submit();
+            return true;
+        }
+    }
+</script>

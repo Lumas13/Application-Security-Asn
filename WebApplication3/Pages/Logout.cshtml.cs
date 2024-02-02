@@ -1,41 +1,40 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Threading.Tasks;
 using WebApplication3.Model;
 
 namespace WebApplication3.Pages
 {
-	public class LogoutModel : PageModel
-	{
-		private readonly SignInManager<ApplicationUser> signInManager;
+    public class LogoutModel : PageModel
+    {
+        private readonly SignInManager<ApplicationUser> signInManager;
 
-		public LogoutModel(SignInManager<ApplicationUser> signInManager)
-		{
-			this.signInManager = signInManager;
-		}
+        public LogoutModel(
+            SignInManager<ApplicationUser> signInManager)
+        {
+            this.signInManager = signInManager;
+        }
 
-		public void OnGet()
-		{
+        public void OnGet()
+        {
 
-		}
+        }
 
-		public async Task<IActionResult> OnPostLogoutAsync()
-		{
-			// Sign the user out
-			await signInManager.SignOutAsync();
+        public async Task<IActionResult> OnPostLogoutAsync()
+        {
+            await signInManager.SignOutAsync();
 
-			// Clear the session data
-			HttpContext.Session.Clear();
+            HttpContext.Session.Clear();
+            HttpContext.Session.Remove("UserId");
+            HttpContext.Session.Remove("FirstName");
+            HttpContext.Session.Remove("LastName");
 
-			// Redirect to the login page
-			return RedirectToPage("Login");
-		}
+            return RedirectToPage("Login");
+        }
 
-		public async Task<IActionResult> OnPostDontLogoutAsync()
-		{
-			// Redirect to the index page without logging out
-			return RedirectToPage("Index");
-		}
-	}
+        public async Task<IActionResult> OnPostDontLogoutAsync()
+        {
+            return RedirectToPage("Index");
+        }
+    }
 }

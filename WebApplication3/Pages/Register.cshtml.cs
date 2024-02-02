@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -6,83 +7,96 @@ using WebApplication3.ViewModels;
 
 namespace WebApplication3.Pages
 {
-	public class RegisterModel : PageModel
-	{
-		// Dependency injection for UserManager and SignInManager
-		private UserManager<ApplicationUser> userManager { get; }
-		private SignInManager<ApplicationUser> signInManager { get; }
+    public class RegisterModel : PageModel
+    {
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly SignInManager<ApplicationUser> signInManager;
+        private readonly IDataProtectionProvider dataProtectionProvider;
+        private readonly AuthDbContext dbContext;
 
-		// Property for binding registration data from the form
-		[BindProperty]
-		public Register RModel { get; set; }
+        [BindProperty]
+        public Register RModel { get; set; }
 
-		// Constructor to initialize UserManager and SignInManager
-		public RegisterModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
-		{
-			this.userManager = userManager;
-			this.signInManager = signInManager;
-		}
+        public RegisterModel(
+            UserManager<ApplicationUser> userManager, 
+            SignInManager<ApplicationUser> signInManager,
+            IDataProtectionProvider dataProtectionProvider, 
+            AuthDbContext dbContext)
 
-		// Handler for HTTP GET request
-		public void OnGet() { }
+        {
+            this.userManager = userManager;
+            this.signInManager = signInManager;
+            this.dataProtectionProvider = dataProtectionProvider;
+            this.dbContext = dbContext;
+        }
 
-		// Handler for HTTP POST request when registering a new user
-		public async Task<IActionResult> OnPostAsync()
-		{
-			if (ModelState.IsValid)
-			{
-				// Check if the email already exists
-				var existingUser = await userManager.FindByEmailAsync(RModel.Email);
+        public void OnGet() 
+        {
 
-				if (existingUser != null)
-				{
-					// If email exists, add error to ModelState
-					ModelState.AddModelError("RModel.Email", "Email address is already registered.");
-					return Page();
-				}
+        }
 
-				// Create a new user object
-				var user = new ApplicationUser()
-				{
-					// CAN USE PROTECT AND UNPROTECT FOR ENCRYPTION DECRYPTION FROM PRACRICAL
-					// AES CREATE A NEW FIELD TO STORE CREDIT CARD ENCRYPTION KEY
-					UserName = RModel.Email,
-					FirstName = Encryption(RModel.FirstName),
-					LastName = RModel.LastName,
-					CreditCard = Encryption(RModel.CreditCard),
-					PhoneNumber = RModel.PhoneNumber,
-					BillingAddress = RModel.BillingAddress,
-					ShippingAddress = RModel.ShippingAddress,
-					Email = RModel.Email,
-				};
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (ModelState.IsValid)
+            {
+                // Check if the email is already registered
+                var existingUser = await userManager.FindByEmailAsync(RModel.Email);
 
-				// Password is hashed internally when a user is created
-				var result = await userManager.CreateAsync(user, RModel.Password);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("RModel.Email", "Email address is already registered.");
+                    return Page();
+                }
 
-				if (result.Succeeded)
-				{
-					await signInManager.SignInAsync(user, false);
-					return RedirectToPage("Index");
-				}
+                var user = new ApplicationUser()
+                {
+                    UserName = RModel.Email,
+                    FirstName = ProtectData(RModel.FirstName),
+                    LastName = RModel.LastName,
+                    CreditCard = ProtectData(RModel.CreditCard),
+                    PhoneNumber = RModel.PhoneNumber,
+                    BillingAddress = RModel.BillingAddress,
+                    ShippingAddress = RModel.ShippingAddress,
+                    Email = RModel.Email,
+                };
 
-				foreach (var error in result.Errors)
-				{
-					ModelState.AddModelError("", error.Description);
-				}
-			}
+                // Handle file upload
+                if (RModel.PhotoFile != null && RModel.PhotoFile.Length > 0)
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await RModel.PhotoFile.CopyToAsync(memoryStream);
+                        user.Photo = memoryStream.ToArray();
+                    }
+                }
 
-			return Page();
-		}
+                // Add user into the database, password hashed by CreateAsync
+                var result = await userManager.CreateAsync(user, RModel.Password);
 
-		// Helper method for encrypting sensitive data
-		private string Encryption(string data)
-		{
-			// Use a secure method to generate key and IV in production
-			string Key = KeyGenerator.GenerateRandomKey(256); // 256 bits key size
-			string IV = KeyGenerator.GenerateRandomIV(128);   // 128 bits block size for AES
+                if (result.Succeeded)
+                {
+                    // Enable Two-Factor Authentication for the user
+                    await userManager.SetTwoFactorEnabledAsync(user, true);
 
-			// Encrypt the data using AES encryption
-			return AESEncryptionHelper.Encrypt(data, Key, IV);
-		}
-	}
+                    await signInManager.SignInAsync(user, false);
+                    return RedirectToPage("Index");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+            }
+
+            return Page();
+        }
+
+        // Data Encryption
+        private string ProtectData(string data)
+        {
+            var protector = dataProtectionProvider.CreateProtector("YourPurpose");
+
+            return protector.Protect(data);
+        }
+    }
 }

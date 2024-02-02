@@ -2,11 +2,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
-using System;
-using System.ComponentModel.DataAnnotations;
 using WebApplication3.Model;
 using WebApplication3.ViewModels;
 using WebApplication3.Helper;
+using Newtonsoft.Json;
 
 namespace WebApplication3.Pages
 {
@@ -18,93 +17,95 @@ namespace WebApplication3.Pages
         private readonly SignInManager<ApplicationUser> signInManager;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IOptions<IdentityOptions> identityOptions;
-        private readonly AuditLogHelper auditLogHelper;
+        private readonly EmailService emailService;
 
-        public LoginModel(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager,
-            IOptions<IdentityOptions> identityOptions, AuditLogHelper auditLogHelper)
+        public LoginModel(
+            SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager,
+            IOptions<IdentityOptions> identityOptions,
+            EmailService emailService)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;
             this.identityOptions = identityOptions;
-            this.auditLogHelper = auditLogHelper;
+            this.emailService = emailService;
         }
 
+        
         public void OnGet()
         {
-
+            
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            // Validate email format
-            if (!IsValidEmail(LModel.Email))
+            // Extract reCAPTCHA response from the form
+            var recaptchaResponse = HttpContext.Request.Form["g-recaptcha-response"];
+            var recaptchaSecretKey = "6LeqklkpAAAAAAmFbCoYet1iyxsLpOCtcI4c3z7R";
+
+            // Use HttpClient to verify reCAPTCHA response with Google's API
+            using (var recaptchaClient = new HttpClient())
             {
-                ModelState.AddModelError("LModel.Email", "Invalid email format.");
+                // Make a request to Google reCAPTCHA API for verification
+                var recaptchaResult = await recaptchaClient.GetStringAsync($"https://www.google.com/recaptcha/api/siteverify?secret={recaptchaSecretKey}&response={recaptchaResponse}");
+
+                // Deserialize the response from reCAPTCHA API
+                var recaptchaData = JsonConvert.DeserializeObject<RecaptchaResponse>(recaptchaResult);
+
+                // Check if reCAPTCHA verification was successful
+                if (!recaptchaData.Success)
+                {
+                    ModelState.AddModelError(string.Empty, "reCAPTCHA verification failed. Please try again.");
+                    return Page();
+                }
             }
 
-            // Validate password length
-            if (LModel.Password.Length < 12)
-            {
-                ModelState.AddModelError("LModel.Password", "Password must be at least 12 characters long.");
-            }
-
-            // Validate other input requirements as needed
+            var user = await userManager.FindByEmailAsync(LModel.Email);
 
             if (ModelState.IsValid)
             {
-                // Attempt to sign in the user using the provided credentials
-                var result = await signInManager.PasswordSignInAsync(LModel.Email, LModel.Password, LModel.RememberMe, false);
+                var result = await signInManager.CheckPasswordSignInAsync(user, LModel.Password, lockoutOnFailure: false);
 
-                if (result.Succeeded)
-                {
-                    // Use AuditLogHelper to log user login
-                    await auditLogHelper.LogUserLoginAsync(LModel.Email);
-
-                    return RedirectToPage("Index");
-                }
-                else if (result.IsLockedOut)
+                if (result.IsLockedOut)
                 {
                     ModelState.AddModelError("LModel.Email", "Account is locked out. Please try again later.");
+                    return Page();
                 }
-                else if (!result.Succeeded)
+                else if (result.Succeeded)
                 {
-                    // Update AccessFailedCount and LockoutEnd if necessary for unsuccessful login attempts
-                    var user = await userManager.FindByEmailAsync(LModel.Email);
+                    // 2FA
+                    if (user != null && user.TwoFactorEnabled)
+                    {
+                        // Generate a 2FA token using UserManager
+                        var token = await userManager.GenerateTwoFactorTokenAsync(user, "Email");
 
+                        System.Diagnostics.Debug.WriteLine($"Generated 2FA token for {LModel.Email}: {token}");
+
+                        await emailService.SendTwoFactorCodeAsync(LModel.Email, token);
+
+                        return RedirectToPage("TwoFactorAuth", new { email = LModel.Email });
+                    }
+                }
+                else
+                {
+                    // Account Lockout
                     if (user != null)
                     {
-                        // Increment the count of failed access attempts
                         user.AccessFailedCount++;
 
-                        // Check if the maximum allowed failed attempts have been reached
                         if (user.AccessFailedCount >= userManager.Options.Lockout.MaxFailedAccessAttempts)
                         {
-                            // Set the lockout end date to the current time plus the lockout duration
                             user.LockoutEnd = DateTimeOffset.UtcNow.Add(userManager.Options.Lockout.DefaultLockoutTimeSpan);
                         }
 
-                        // Update the user in the database with the modified properties
                         await userManager.UpdateAsync(user);
                     }
 
-                    ModelState.AddModelError("LModel.Email", "Username or Password incorrect");
+                    ModelState.AddModelError("LModel.Email", "Email or password is incorrect.");
                 }
             }
 
             return Page();
-        }
-
-        private bool IsValidEmail(string email)
-        {
-            try
-            {
-                var mailAddress = new System.Net.Mail.MailAddress(email);
-                return mailAddress.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

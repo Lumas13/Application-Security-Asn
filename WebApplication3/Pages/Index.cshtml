@@ -3,37 +3,90 @@
 @inject IHttpContextAccessor contxt;
 @{
     ViewData["Title"] = "Home page";
-    }
-    
+}
 
 <div class="container mt-5">
     <div class="text-center">
-        <!-- Welcome message using session data -->
-        <h1 class="display-4">Welcome, @contxt.HttpContext.Session.GetString("FirstName") @contxt.HttpContext.Session.GetString("LastName")!</h1>
+        <!-- Welcome message using session data for last name and decrypted first name -->
+        <h1 class="display-4">Welcome, @ViewData["DecryptedFirstName"] @contxt.HttpContext.Session.GetString("LastName")!</h1>
     </div>
 
-    <h1 class="mb-3">User Information</h1>
+    <div class="row">
+        <!-- User Information -->
+        <div class="col-md-6">
+            <h1 class="mb-3">User Information</h1>
 
-    <dl class="row">
-        <dt class="col-sm-3">First Name:</dt>
-        <dd class="col-sm-9">@Model.UserInfo.FirstName</dd>
+            <form method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
 
-        <dt class="col-sm-3">Last Name:</dt>
-        <dd class="col-sm-9">@Model.UserInfo.LastName</dd>
+                <!-- First Name Input -->
+                <div class="mb-3">
+                    <label class="form-label" asp-for="UserInfo.FirstName">First Name</label>
+                    <input asp-for="UserInfo.FirstName" class="form-control" readonly />
+                    <span asp-validation-for="UserInfo.FirstName" class="text-danger"></span>
+                </div>
 
-        <dt class="col-sm-3">Credit Card:</dt>
-        <dd class="col-sm-9">@Model.UserInfo.CreditCard</dd>
+                <!-- Last Name Input -->
+                <div class="mb-3">
+                    <label class="form-label" asp-for="UserInfo.LastName">Last Name</label>
+                    <input asp-for="UserInfo.LastName" class="form-control" readonly />
+                    <span asp-validation-for="UserInfo.LastName" class="text-danger"></span>
+                </div>
 
-        <dt class="col-sm-3">Phone Number:</dt>
-        <dd class="col-sm-9">@Model.UserInfo.PhoneNumber</dd>
+                <!-- Credit Card Input -->
+                <div class="mb-3">
+                    <label class="form-label" asp-for="UserInfo.CreditCard">Credit Card</label>
+                    <input asp-for="UserInfo.CreditCard" class="form-control" readonly />
+                    <span asp-validation-for="UserInfo.CreditCard" class="text-danger"></span>
+                </div>
 
-        <dt class="col-sm-3">Billing Address:</dt>
-        <dd class="col-sm-9">@Model.UserInfo.BillingAddress</dd>
+                <!-- Phone Number Input -->
+                <div class="mb-3">
+                    <label class="form-label" asp-for="UserInfo.PhoneNumber">Phone Number</label>
+                    <input asp-for="UserInfo.PhoneNumber" class="form-control" readonly />
+                    <span asp-validation-for="UserInfo.PhoneNumber" class="text-danger"></span>
+                </div>
 
-        <dt class="col-sm-3">Shipping Address:</dt>
-        <dd class="col-sm-9">@Model.UserInfo.ShippingAddress</dd>
+                <!-- Billing Address Input -->
+                <div class="mb-3">
+                    <label class="form-label" asp-for="UserInfo.BillingAddress">Billing Address</label>
+                    <input asp-for="UserInfo.BillingAddress" class="form-control" readonly />
+                    <span asp-validation-for="UserInfo.BillingAddress" class="text-danger"></span>
+                </div>
 
-        <dt class="col-sm-3">Email:</dt>
-        <dd class="col-sm-9">@Model.UserInfo.Email</dd>
-    </dl>
+                <!-- Shipping Address Input -->
+                <div class="mb-3">
+                    <label class="form-label" asp-for="UserInfo.ShippingAddress">Shipping Address</label>
+                    <input asp-for="UserInfo.ShippingAddress" class="form-control" readonly />
+                    <span asp-validation-for="UserInfo.ShippingAddress" class="text-danger"></span>
+                </div>
+
+                <!-- Email Input -->
+                <div class="mb-3">
+                    <label class="form-label" asp-for="UserInfo.Email">Email</label>
+                    <input asp-for="UserInfo.Email" class="form-control" readonly />
+                    <span asp-validation-for="UserInfo.Email" class="text-danger"></span>
+                </div>
+
+                <!-- Change Password Button -->
+                <div class="container mt-3">
+                    <a asp-page="/ChangePassword" class="btn btn-primary">Change Password</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- User Photo -->
+        <div class="col-md-6">
+            <h1 class="mb-3">User Photo</h1>
+
+            @if (Model.UserInfo.Photo != null && Model.UserInfo.Photo.Length > 0)
+            {
+                <img src="data:image/jpeg;base64,@Convert.ToBase64String(Model.UserInfo.Photo)" alt="User Photo" class="img-fluid" />
+            }
+            else
+            {
+                <p>No photo available</p>
+            }
+        </div>
+    </div>
 </div>

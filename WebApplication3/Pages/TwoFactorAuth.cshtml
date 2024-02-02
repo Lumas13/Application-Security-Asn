@@ -1,0 +1,29 @@
+﻿@page
+@model WebApplication3.Pages.TwoFactorAuthModel
+@{
+    ViewData["Title"] = "Two Factor Authentication";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-sm-12 col-md-12 col-lg-4">
+            <h1 class="mb-3">Two-Factor Authentication</h1>
+
+            <form method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <div class="mb-3">
+                    <label class="form-label" asp-for="TwoFactorCode">Enter your 2FA code:</label>
+                    <input type="text" asp-for="TwoFactorCode" class="form-control" required />
+                    <span asp-validation-for="TwoFactorCode" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">Verify 2FA Code</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
