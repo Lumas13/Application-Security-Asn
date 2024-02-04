@@ -17,58 +17,51 @@
             <h1 class="mb-3">User Information</h1>
 
             <form method="post">
+                @Html.AntiForgeryToken()
                 <div asp-validation-summary="All" class="text-danger"></div>
 
-                <!-- First Name Input -->
                 <div class="mb-3">
                     <label class="form-label" asp-for="UserInfo.FirstName">First Name</label>
                     <input asp-for="UserInfo.FirstName" class="form-control" readonly />
                     <span asp-validation-for="UserInfo.FirstName" class="text-danger"></span>
                 </div>
 
-                <!-- Last Name Input -->
                 <div class="mb-3">
                     <label class="form-label" asp-for="UserInfo.LastName">Last Name</label>
                     <input asp-for="UserInfo.LastName" class="form-control" readonly />
                     <span asp-validation-for="UserInfo.LastName" class="text-danger"></span>
                 </div>
 
-                <!-- Credit Card Input -->
                 <div class="mb-3">
                     <label class="form-label" asp-for="UserInfo.CreditCard">Credit Card</label>
                     <input asp-for="UserInfo.CreditCard" class="form-control" readonly />
                     <span asp-validation-for="UserInfo.CreditCard" class="text-danger"></span>
                 </div>
 
-                <!-- Phone Number Input -->
                 <div class="mb-3">
                     <label class="form-label" asp-for="UserInfo.PhoneNumber">Phone Number</label>
                     <input asp-for="UserInfo.PhoneNumber" class="form-control" readonly />
                     <span asp-validation-for="UserInfo.PhoneNumber" class="text-danger"></span>
                 </div>
 
-                <!-- Billing Address Input -->
                 <div class="mb-3">
                     <label class="form-label" asp-for="UserInfo.BillingAddress">Billing Address</label>
                     <input asp-for="UserInfo.BillingAddress" class="form-control" readonly />
                     <span asp-validation-for="UserInfo.BillingAddress" class="text-danger"></span>
                 </div>
 
-                <!-- Shipping Address Input -->
                 <div class="mb-3">
                     <label class="form-label" asp-for="UserInfo.ShippingAddress">Shipping Address</label>
                     <input asp-for="UserInfo.ShippingAddress" class="form-control" readonly />
                     <span asp-validation-for="UserInfo.ShippingAddress" class="text-danger"></span>
                 </div>
 
-                <!-- Email Input -->
                 <div class="mb-3">
                     <label class="form-label" asp-for="UserInfo.Email">Email</label>
                     <input asp-for="UserInfo.Email" class="form-control" readonly />
                     <span asp-validation-for="UserInfo.Email" class="text-danger"></span>
                 </div>
 
-                <!-- Change Password Button -->
                 <div class="container mt-3">
                     <a asp-page="/ChangePassword" class="btn btn-primary">Change Password</a>
                 </div>

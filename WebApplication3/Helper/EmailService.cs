@@ -43,7 +43,7 @@ namespace WebApplication3.Helper
             }
         }
 
-        // New method for sending 2FA code
+        // Method for sending 2FA code
         public async Task SendTwoFactorCodeAsync(string toEmail, string twoFactorCode)
         {
 

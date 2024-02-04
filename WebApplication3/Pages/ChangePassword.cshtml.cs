@@ -45,7 +45,7 @@ namespace WebApplication3.Pages
             // Check minimum password age
             if (user.LastPasswordChangeDate.HasValue)
             {
-                var minPasswordAge = TimeSpan.FromMinutes(0); // Change this to your desired minimum password age
+                var minPasswordAge = TimeSpan.FromMinutes(30); // Change this to your desired minimum password age
                 var timeSinceLastChange = DateTime.UtcNow - user.LastPasswordChangeDate.Value;
 
                 if (timeSinceLastChange < minPasswordAge)

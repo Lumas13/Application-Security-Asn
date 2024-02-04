@@ -81,11 +81,6 @@ namespace WebApplication3.Pages
                     await signInManager.SignInAsync(user, false);
                     return RedirectToPage("Index");
                 }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
-                }
             }
 
             return Page();

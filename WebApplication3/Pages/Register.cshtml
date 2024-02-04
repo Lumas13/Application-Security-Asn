@@ -54,7 +54,8 @@
 
                 <div class="mb-3">
                     <label class="form-label" asp-for="RModel.Password">Password</label>
-                    <input type="password" id="passwordInput" asp-for="RModel.Password" class="form-control" oninput="checkPasswordStrength()" />
+                    <input type="password" id="passwordInput" asp-for="RModel.Password" class="form-control" 
+                    oninput="checkPasswordStrength()" />
                     <span asp-validation-for="RModel.Password" class="text-danger"></span>
                     <div id="passwordStrength" class="mt-2"></div>
                 </div>
@@ -89,6 +90,18 @@
                             if (/[A-Z]/.test(password)) {
                                 strength += 1;
                             }
+                            if (/[a-z]/.test(password)) {
+                                strength += 1;
+                            }
+                            if (/\d/.test(password)) {
+                                strength += 1;
+                            }
+                            if (/[^a-zA-Z\d]/.test(password)) {
+                                strength += 1;
+                            }
+                            if (password.length >= 12) {
+                                strength += 1;
+                            }
                         }
 
                         var strengthDiv = document.getElementById('passwordStrength');
@@ -97,30 +110,55 @@
                         if (strength === 0) {
                             strengthDiv.innerHTML += 'Weak';
                             strengthDiv.className = 'text-danger';
-                        } else if (strength <= 3) {
+                        } else if (strength <= 2) {
                             strengthDiv.innerHTML += 'Medium';
                             strengthDiv.className = 'text-warning';
-                        } else {
+                        } else if (strength <= 4) {
                             strengthDiv.innerHTML += 'Strong';
+                            strengthDiv.className = 'text-success';
+                        } else {
+                            strengthDiv.innerHTML += 'Very Strong';
                             strengthDiv.className = 'text-success';
                         }
                     }
 
+                    // Client side
                     function validatePassword() {
                         var password = document.getElementById('passwordInput').value;
 
-                        if (!/\d/.test(password) || !/[^a-zA-Z\d]/.test(password)) {
-                            alert('Password must contain at least one digit and one special character.');
+                        // Check for at least one lowercase letter
+                        if (!/[a-z]/.test(password)) {
+                            alert('Password must contain at least one lowercase letter.');
                             return false;
                         }
 
-                        if (password.length < 8) {
-                            alert('Password must be at least 8 characters long.');
+                        // Check for at least one uppercase letter
+                        if (!/[A-Z]/.test(password)) {
+                            alert('Password must contain at least one uppercase letter.');
+                            return false;
+                        }
+
+                        // Check for at least one digit
+                        if (!/\d/.test(password)) {
+                            alert('Password must contain at least one digit.');
+                            return false;
+                        }
+
+                        // Check for at least one special character
+                        if (!/[^a-zA-Z\d]/.test(password)) {
+                            alert('Password must contain at least one special character.');
+                            return false;
+                        }
+
+                        // Check for minimum length of 12 characters
+                        if (password.length < 12) {
+                            alert('Password must be at least 12 characters long.');
                             return false;
                         }
 
                         return true;
                     }
+  
                 </script>
             </section>
         </div>
